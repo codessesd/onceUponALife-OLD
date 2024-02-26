@@ -12,9 +12,27 @@
         <p class="text-justify">
           What if you can get a bird's eye view of your life? What if you could
           see how far you've come and how far you have to go?
+          <Button
+            @click="toggleInfoModal"
+            class="inline-block h-7 w-7 justify-center items-center rounded-full p-0 text-center mr-2"
+            severity="secondary"
+            text
+            raised
+          >
+            <i class="pi pi-question-circle text-sm"></i>
+          </Button>
         </p>
       </div>
       <div id="information-panel" class="w-full max-w-[450px] mb-10 mt-10">
+        <div class="hidden shadow-lg rounded-lg p-4 mb-10">
+          <p class="text-gray-400 text-sm text-justify">
+            When you click Go, a grid will show. Each tiny box represents one
+            week of a person’s life. One row has 52 boxes representing one year.
+            For example: If your life expectancy is 100 years then there would
+            be 100 rows with 52 boxes each. If you are 50 years old then 50 rows
+            will be coloured orange, representing the life you have lived.
+          </p>
+        </div>
         <div class="flex-auto w-full">
           <InputGroup
             label="Enter your Date of Birth"
@@ -47,18 +65,6 @@
           <div class="flex w-full justify-end">
             <Button @click="toggleGrid" class="px-16 mt-10">Go</Button>
           </div>
-          <div
-            class="hidden mt-10 shadow-xl border border-gray-50 p-2 rounded-lg"
-          >
-            <p class="text-sm w-full text-justify text-gray-400">
-              Each tiny box represents one week a person’s life. Each row of
-              boxes (52 boxes) represents one year of your life. The global life
-              expectancy is 73 years, therefore, the would be 73 rows in the
-              grid below and if you are 36 years, you have lived about half of
-              those boxes. Put in your date of birth to get a perspective of how
-              my weeks you have lived and how many weeks you may have left.
-            </p>
-          </div>
         </div>
       </div>
 
@@ -66,15 +72,19 @@
       <div
         v-if="showGrid"
         @click="toggleGrid"
-        class="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black/30 z-10"
+        class="fixed top-0 left-0 w-full h-full justify-center items-center bg-black/60 z-10"
       ></div>
       <Transition>
         <LifeGrid
           v-if="showGrid"
+          @toggleGrid="toggleGrid"
+          @toggleInfoModal="toggleInfoModal"
           :weeksLived="weeksLived"
           :lifeExpectancy="lifeExpectancy"
-          class="fixed top-0 z-20"
         ></LifeGrid>
+      </Transition>
+      <Transition>
+        <InfoModal v-if="showInfoModal" @close="toggleInfoModal"></InfoModal>
       </Transition>
     </div>
   </div>
@@ -86,6 +96,16 @@ import Button from "primevue/button";
 import Dropdown from "primevue/dropdown";
 import InputGroup from "@/MyComponents/InputGroup.vue";
 import LifeGrid from "@/MyComponents/LifeGrid.vue";
+import InfoModal from "@/MyComponents/InfoModal.vue";
+// import ConfirmDialog from "primevue/confirmdialog";
+// import { useConfirm } from "primevue/useconfirm";
+// import { useToast } from "primevue/usetoast";
+
+let showInfoModal = ref(false);
+
+function toggleInfoModal() {
+  showInfoModal.value = !showInfoModal.value;
+}
 
 let showGrid = ref(false);
 const toggleGrid = () => {
@@ -93,10 +113,12 @@ const toggleGrid = () => {
 };
 
 const countriesObj = [
-  { country: "Rest of the world", value: 73 },
-  { country: "South Africa", value: 65 },
-  { country: "United States", value: 76 },
-  { country: "Hong Kong", value: 80 },
+  { country: "Rest of the world", allSexes: 73, males: 70, females: 76 },
+  { country: "South Africa", allSexes: 65, males: 59, females: 65 },
+  { country: "Nigeria", allSexes: 53, males: 53, females: 54 },
+  { country: "United States", allSexes: 76, males: 77, females: 82 },
+  { country: "Hong Kong", allSexes: 88, males: 83, females: 88 },
+  { country: "100 years", allSexes: 100, males: 100, females: 100 },
 ];
 
 let countries = [];
@@ -105,7 +127,7 @@ for (let i = 0; i < countriesObj.length; i++) {
 }
 
 let subtextExpectancy = ref("The Global Life expectancy is");
-let lifeExpectancy = ref(countriesObj[1].value);
+let lifeExpectancy = ref(countriesObj[1].allSexes);
 let selectedCountry = ref(countries[1]);
 watch(
   () => selectedCountry.value,
@@ -116,7 +138,7 @@ watch(
 
     lifeExpectancy.value = countriesObj.find(
       (country) => country.country === newVal
-    ).value;
+    ).allSexes;
   }
 );
 
@@ -141,12 +163,12 @@ watch(
 <style scoped>
 .v-enter-active,
 .v-leave-active {
-  transition: top 0.5s ease, opacity 0.5s ease;
+  transition: bottom 0.5s ease, opacity 0.5s ease;
 }
 
 .v-enter-from,
 .v-leave-to {
-  top: 300px;
+  bottom: -150px;
   opacity: 0;
 }
 </style>
